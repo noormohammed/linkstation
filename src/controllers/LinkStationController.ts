@@ -12,7 +12,7 @@ class LinkStationController {
    * @param {Object} res - Express response object
    * @return {Object}
    */
-  public bestLinkStation = (req: Request, res: Response, next: NextFunction) => {
+  bestLinkStation = (req: Request, res: Response, next: NextFunction) => {
     try {
       if (Object.keys(req.body).length) {
         return res.status(200).json(req.body);
