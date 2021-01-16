@@ -25,6 +25,7 @@ class MainRouter {
 
     /* Some rules for our API's */
     this._router.use((req, res, next) => {
+      //  deepcode ignore TooPermissiveCorsHeader: This is only for dev/testing purpose
       res.header('Access-Control-Allow-Origin', '*'); // Change this for production
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
