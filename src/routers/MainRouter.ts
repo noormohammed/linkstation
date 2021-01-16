@@ -3,7 +3,7 @@ import * as bodyParser from 'body-parser';
 import LinkStationRouter from './linkstation';
 import ErrorHandler from '../errors/ErrorHandler';
 
-class MasterRouter {
+class MainRouter {
   private _router = Router();
   private _subrouterLS = LinkStationRouter;
 
@@ -28,9 +28,9 @@ class MasterRouter {
       res.header('Access-Control-Allow-Origin', '*'); // Change this for production
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
-      if (req.method == 'OPTIONS') {
-          res.header('Access-Control-Allow-Methods', 'POST, GET');
-          return res.status(200).json({});
+      if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Methods', 'POST, GET');
+        return res.status(200).json({});
       }
 
       next();
@@ -38,10 +38,10 @@ class MasterRouter {
   
     this._router.use('/linkstation', this._subrouterLS);
 
-    this._router.use(function(req, res){
+    this._router.use((req, res) => {
       throw new ErrorHandler(404, 'Not Found');
     });
   }
 }
 
-export = new MasterRouter().router;
+export = new MainRouter().router;

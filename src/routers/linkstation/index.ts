@@ -14,10 +14,10 @@ class LinkStationRouter {
   }
 
   /**
-  * Connect routes to their matching controller endpoints.
-  */
+   * Connect routes to their matching controller endpoints.
+   */
   private _configure() {
-    this._router.get('/', (req: Request, res: Response, next: NextFunction) => {
+    /* this._router.get('/', (req: Request, res: Response, next: NextFunction) => {
       try {
         const result = this._controller.defaultMethod();
         res.status(200).json(result);
@@ -25,9 +25,11 @@ class LinkStationRouter {
       catch (error) {
         next(error);
       }
-    });
+    }); */
 
-    this.router.post('/find', this._controller.bestLinkStation);    
+    /* post API for finding the most suitable linkStation with most power */
+    this.router.post('/find', this._controller.bestLinkStation);
+
   }
 }
 

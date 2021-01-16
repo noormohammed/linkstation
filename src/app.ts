@@ -13,8 +13,8 @@ dotenv.config({
  * @description Will later contain the routing system.
  */
 class Server {
-  public app = express();
-  public router = MainRouter;
+  app = express();
+  router = MainRouter;
 }
 
 // initialize server app
