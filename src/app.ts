@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import MainRouter from './routers/MainRouter';
+import ErrorHandler from './errors/ErrorHandler';
 
 // load the environment variables from the .env file
 dotenv.config({
@@ -11,11 +13,24 @@ dotenv.config({
  * @description Will later contain the routing system.
  */
 class Server {
-  public app = express();
+  app = express();
+  router = MainRouter;
 }
 
 // initialize server app
 const server = new Server();
+
+// make server app handle any route starting with '/api'
+server.app.use('/api/v1', server.router);
+
+// make server app handle any error
+server.app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) => {
+  res.status(err.statusCode || 500).json({
+    status: 'error',
+    statusCode: err.statusCode,
+    message: err.message
+  });
+});
 
 // make server listen on some port
 ((port = process.env.APP_PORT || 5000) => {
