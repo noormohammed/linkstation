@@ -6,7 +6,7 @@ import { readJsonFileSync } from '../helpers/Helpers';
  * LinkStation Controller for finding the most suitable link station with max power
  */
 class LinkStation {
-  linkStationLocations: any;
+  private linkStationLocations;
 
   /**
    * LinkStation Constructor
@@ -21,10 +21,10 @@ class LinkStation {
    * @param {object} lsElm Given link station location to calculate distance
    * @returns {number} distance of the device from link station along with reach
    */
-  calcDistance = (points: { x: number; y: number }, lsElm: { x: number; y: number }) => {
-    if (typeof points == 'object' && typeof lsElm == 'object') {
-      let xPart = Math.pow(Math.abs(points.x - lsElm.x), 2);
-      let yPart = Math.pow(Math.abs(points.y - lsElm.y), 2);
+  private calcDistance = (points: { x: number; y: number }, lsElm: { x: number; y: number }) => {
+    if (typeof points === 'object' && typeof lsElm === 'object') {
+      const xPart = Math.pow(Math.abs(points.x - lsElm.x), 2);
+      const yPart = Math.pow(Math.abs(points.y - lsElm.y), 2);
       /* let xPart = Math.pow(Math.abs(lsElm.x - points.x), 2);
       let yPart = Math.pow(Math.abs(lsElm.y - points.y), 2); */
 
@@ -40,7 +40,7 @@ class LinkStation {
    * @param {object} lsElm Given link station location with reach
    * @returns {number} calculated power of the link station for the given device
    */
-  calcPower = (points: { x: number; y: number }, lsElm: { x: number; y: number; r: number }) => {
+  private calcPower = (points: { x: number; y: number }, lsElm: { x: number; y: number; r: number }) => {
     if (typeof points == 'object' && typeof lsElm == 'object') {
       let distance = this.calcDistance(points, { x: lsElm.x, y: lsElm.y });
 
@@ -60,7 +60,7 @@ class LinkStation {
   /**
    * Get the given link station locations from the JSON file
    */
-  getLinkStationsLocations = () => {
+  private getLinkStationsLocations = () => {
     // read the location of the link stations from given json
     return readJsonFileSync('linkstations_locations.json');
   };
@@ -90,18 +90,16 @@ class LinkStation {
           }
 
           // find the max power from the powerObj
-          let power = 0;
-          if (powerObj.length && (power = Math.max.apply(null, powerObj)) > 0) {
-            let bestLS = lsLocations[powerObj.indexOf(power)];
+          if (powerObj.length) {
+            const power = Math.max.apply(null, powerObj);
+            if (power > 0) {
+              let bestLS = lsLocations[powerObj.indexOf(power)];
 
-            return res.status(200).json({
-              message: `Best link station for point ${points.x},${points.y} is ${bestLS.x},${bestLS.y} with power ${power}`
-            });
-          } else {
-            // do nothing, final return takes care
+              return res.status(200).json({
+                message: `Best link station for point ${points.x},${points.y} is ${bestLS.x},${bestLS.y} with power ${power}`
+              });
+            }
           }
-        } else {
-          // do nothing, final return takes care
         }
       } else {
         throw new ErrorHandler(422, 'No/insufficient data for device points');
