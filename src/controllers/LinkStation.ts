@@ -77,7 +77,7 @@ class LinkStation {
     try {
       if (Object.keys(req.body).length && points.hasOwnProperty('x') && points.hasOwnProperty('y')) {
         if (this.linkStationLocations.hasOwnProperty('locations')) {
-          let lsLocations = this.linkStationLocations['locations'];
+          const lsLocations = this.linkStationLocations['locations'];
 
           // calculate the power for the given device
           let powerObj = [];
@@ -93,7 +93,7 @@ class LinkStation {
           if (powerObj.length) {
             const power = Math.max.apply(null, powerObj);
             if (power > 0) {
-              let bestLS = lsLocations[powerObj.indexOf(power)];
+              const bestLS = lsLocations[powerObj.indexOf(power)];
 
               return res.status(200).json({
                 message: `Best link station for point ${points.x},${points.y} is ${bestLS.x},${bestLS.y} with power ${power}`
