@@ -80,7 +80,7 @@ class LinkStation {
           const lsLocations = this.linkStationLocations['locations'];
 
           // calculate the power for the given device
-          let powerObj = [];
+          const powerObj = [];
           for (const location in lsLocations) {
             if (Object.prototype.hasOwnProperty.call(lsLocations, location)) {
               const element = lsLocations[location];
