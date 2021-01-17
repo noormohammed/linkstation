@@ -7,12 +7,13 @@ class LinkStationController {
   }
 
   /**
-   * Get the coordinates
+   * Get most suitable link station with most power for given device points (x, y)
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    * @return {Object}
    */
   bestLinkStation = (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     try {
       if (Object.keys(req.body).length) {
         return res.status(200).json(req.body);
