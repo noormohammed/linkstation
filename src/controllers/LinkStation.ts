@@ -73,7 +73,7 @@ class LinkStation {
    */
   findSuitableLinkStation = (req: Request, res: Response, next: NextFunction) => {
     const points = req.body;
-    let result = false;
+
     try {
       if (Object.keys(req.body).length && points.hasOwnProperty('x') && points.hasOwnProperty('y')) {
         if (this.linkStationLocations.hasOwnProperty('locations')) {
