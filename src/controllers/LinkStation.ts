@@ -41,8 +41,8 @@ class LinkStation {
    * @returns {number} calculated power of the link station for the given device
    */
   private calcPower = (points: { x: number; y: number }, lsElm: { x: number; y: number; r: number }) => {
-    if (typeof points == 'object' && typeof lsElm == 'object') {
-      let distance = this.calcDistance(points, { x: lsElm.x, y: lsElm.y });
+    if (typeof points === 'object' && typeof lsElm === 'object') {
+      const distance = this.calcDistance(points, { x: lsElm.x, y: lsElm.y });
 
       // Check if distance is greater than reach
       if (distance > lsElm.r) {
