@@ -1,37 +1,38 @@
 import { NextFunction, Request, Response } from 'express';
 import ErrorHandler from '../errors/ErrorHandler';
-import { readJsonFileSync } from '../helpers/Helpers';
+
+/**
+ * Interface for device points (x, y)
+ */
+interface DevicePoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * Interface for link station points (x, y, r)
+ */
+interface LinkStationPoint {
+  x: number;
+  y: number;
+  r: number;
+}
 
 /**
  * LinkStation Controller for finding the most suitable link station with max power
  */
 class LinkStation {
-  private linkStationLocations;
-
-  /**
-   * LinkStation Constructor
-   */
-  constructor() {
-    this.linkStationLocations = this.getLinkStationsLocations();
-  }
-
   /**
    * Calculate distance from each of the ls locations
    * @param {object} points Given device's location in points (x, y)
-   * @param {object} lsElm Given link station location to calculate distance
+   * @param {object} linkStation Given link station location to calculate distance
    * @returns {number} distance of the device from link station along with reach
    */
-  private calcDistance = (points: { x: number; y: number }, lsElm: { x: number; y: number }) => {
-    if (typeof points === 'object' && typeof lsElm === 'object') {
-      const xPart = Math.pow(Math.abs(points.x - lsElm.x), 2);
-      const yPart = Math.pow(Math.abs(points.y - lsElm.y), 2);
-      /* let xPart = Math.pow(Math.abs(lsElm.x - points.x), 2);
-      let yPart = Math.pow(Math.abs(lsElm.y - points.y), 2); */
-
-      return Math.sqrt(xPart + yPart);
-    } else {
-      return 0;
-    }
+  private calculateDistance = (device: DevicePoint, linkStation: LinkStationPoint) => {
+    // formula: d = √ (x2 − x1)2 + (y2 − y1)2
+    const xPart = Math.abs(device.x - linkStation.x) ** 2;
+    const yPart = Math.abs(device.y - linkStation.y) ** 2;
+    return Math.sqrt(xPart + yPart);
   };
 
   /**
@@ -40,29 +41,84 @@ class LinkStation {
    * @param {object} lsElm Given link station location with reach
    * @returns {number} calculated power of the link station for the given device
    */
-  private calcPower = (points: { x: number; y: number }, lsElm: { x: number; y: number; r: number }) => {
-    if (typeof points === 'object' && typeof lsElm === 'object') {
-      const distance = this.calcDistance(points, { x: lsElm.x, y: lsElm.y });
+  private calculatePower = (device: DevicePoint, linkStation: LinkStationPoint) => {
+    const distance = this.calculateDistance(device, linkStation);
 
-      // Check if distance is greater than reach
-      if (distance > lsElm.r) {
-        return 0;
-      } else {
-        // calculate the power
-        // power = (reach - device's distance from linkstation)^2
-        return Math.pow(Math.abs(lsElm.r - distance), 2);
-      }
-    } else {
-      return 0;
-    }
+    // Check if distance is greater than link station reach
+    if (distance > linkStation.r) return 0;
+
+    // calculate power
+    // power = (reach - device's distance from linkstation)^2
+    return Math.abs(linkStation.r - distance) ** 2;
   };
 
   /**
-   * Get the given link station locations from the JSON file
+   * Find the link station with maximum power from the given list of link stations
+   * @param devicePoint device point from request data
+   * @param allLinkStationsPoints all link stations points from request data
+   * @returns returns an object with link station with maximum power or null if power is <= 0
    */
-  private getLinkStationsLocations = () => {
-    // read the location of the link stations from given json
-    return readJsonFileSync('linkstations_locations.json');
+  private findMaxPowerLinkStation = (devicePoint: DevicePoint, allLinkStationsPoints: Array<LinkStationPoint>) => {
+    // calculate the power for the given device
+    const powerObj = [];
+    for (const linkStation of allLinkStationsPoints) {
+      powerObj.push(this.calculatePower(devicePoint, linkStation));
+    }
+
+    if (!powerObj.length) throw new ErrorHandler(422, 'Cannot calculate power for the given link stations.');
+
+    // find the max power from the powerObj
+    const power = Math.max.apply(null, powerObj);
+
+    if (power <= 0) return null;
+
+    return { power: power, bestLinkStation: allLinkStationsPoints[powerObj.indexOf(power)] };
+  };
+
+  /**
+   * Validator for DevicePoint
+   * @param point given device point that needs to be validated
+   */
+  private isDevicePoint = (point: any): point is DevicePoint => {
+    return point && typeof point.x === 'number' && typeof point.y === 'number';
+  };
+
+  /**
+   * Validator for LinkStationPoint
+   * @param point given link station point that needs to be validated
+   */
+  private isLinkStationPoint = (point: any): point is LinkStationPoint => {
+    return point && typeof point.x === 'number' && typeof point.y === 'number' && typeof point.r === 'number';
+  };
+
+  /**
+   * Validate the incoming request data for device point and link station points
+   * @param request request data
+   */
+  private validateRequest = (request: any) => {
+    if (typeof request !== 'object' && !Object.keys(request).length) {
+      throw new ErrorHandler(404, 'Please provide device point & link station points.');
+    }
+
+    if (!request.hasOwnProperty('devicePoint')) {
+      throw new ErrorHandler(404, 'Please provide a device point (x, y).');
+    }
+
+    // Check if request contains Device location points as defined in DevicePoint
+    if (!this.isDevicePoint(request.devicePoint)) {
+      throw new ErrorHandler(404, `Invalid device point: ${JSON.stringify(request.devicePoint)}`);
+    }
+
+    if (!request.hasOwnProperty('linkStationPoints') || !Object.keys(request.linkStationPoints).length) {
+      throw new ErrorHandler(404, 'Please provide link station points (x, y, r)');
+    }
+
+    // Check if request contains Link Station locations points as defined in LinkStationPoint
+    for (const point of request.linkStationPoints) {
+      if (!this.isLinkStationPoint(point)) {
+        throw new ErrorHandler(404, `Invalid link station point: ${JSON.stringify(point)}`);
+      }
+    }
   };
 
   /**
@@ -72,41 +128,24 @@ class LinkStation {
    * @return {Object}
    */
   findSuitableLinkStation = (req: Request, res: Response, next: NextFunction) => {
-    const points = req.body;
-
     try {
-      if (Object.keys(req.body).length && points.hasOwnProperty('x') && points.hasOwnProperty('y')) {
-        if (this.linkStationLocations.hasOwnProperty('locations')) {
-          const lsLocations = this.linkStationLocations['locations'];
+      this.validateRequest(req.body);
 
-          // calculate the power for the given device
-          const powerObj = [];
-          for (const location in lsLocations) {
-            if (Object.prototype.hasOwnProperty.call(lsLocations, location)) {
-              const element = lsLocations[location];
-              /* [x, y, r] => points (x, y) and have reach (r) */
-              powerObj.push(this.calcPower(points, element));
-            }
-          }
+      const devicePoint = req.body.devicePoint;
+      const allLinkStationsPoints = req.body.linkStationPoints;
 
-          // find the max power from the powerObj
-          if (powerObj.length) {
-            const power = Math.max.apply(null, powerObj);
-            if (power > 0) {
-              const bestLS = lsLocations[powerObj.indexOf(power)];
+      const result = this.findMaxPowerLinkStation(devicePoint, allLinkStationsPoints);
 
-              return res.status(200).json({
-                message: `Best link station for point ${points.x},${points.y} is ${bestLS.x},${bestLS.y} with power ${power}`
-              });
-            }
-          }
-        }
-      } else {
-        throw new ErrorHandler(422, 'No/insufficient data for device points');
+      if (!result) {
+        return res.status(200).json({
+          status: 'error',
+          message: `No link station within reach for point ${devicePoint.x},${devicePoint.y}`
+        });
       }
 
-      return res.status(404).json({
-        message: `No link station within reach for point ${points.x},${points.y}`
+      return res.status(200).json({
+        status: 'success',
+        message: `Best link station for point ${devicePoint.x},${devicePoint.y} is ${result.bestLinkStation.x},${result.bestLinkStation.y} with power ${result.power}`
       });
     } catch (error) {
       console.log(error);

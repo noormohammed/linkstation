@@ -18,7 +18,7 @@ class LinkStationRouter {
    */
   private _configure() {
     /* post API for finding the most suitable linkStation with most power */
-    this.router.post('/find', this._controller.findSuitableLinkStation);
+    this.router.post('/findLinkStationForDevice', this._controller.findSuitableLinkStation);
   }
 }
 
