@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { type } from 'os';
 import ErrorHandler from '../errors/ErrorHandler';
 
 /**
@@ -17,6 +18,8 @@ interface LinkStationPoint {
   y: number;
   r: number;
 }
+
+type AllLinkStationsPoints = LinkStationPoint[];
 
 /**
  * LinkStation Controller for finding the most suitable link station with max power
@@ -58,7 +61,7 @@ class LinkStation {
    * @param allLinkStationsPoints all link stations points from request data
    * @returns returns an object with link station with maximum power or null if power is <= 0
    */
-  private findMaxPowerLinkStation = (devicePoint: DevicePoint, allLinkStationsPoints: Array<LinkStationPoint>) => {
+  private findMaxPowerLinkStation = (devicePoint: DevicePoint, allLinkStationsPoints: AllLinkStationsPoints) => {
     // calculate the power for the given device
     const powerObj = [];
     for (const linkStation of allLinkStationsPoints) {
@@ -72,13 +75,14 @@ class LinkStation {
 
     if (power <= 0) return null;
 
-    return { power: power, bestLinkStation: allLinkStationsPoints[powerObj.indexOf(power)] };
+    return { power, bestLinkStation: allLinkStationsPoints[powerObj.indexOf(power)] };
   };
 
   /**
    * Validator for DevicePoint
    * @param point given device point that needs to be validated
    */
+  //  deepcode ignore no-any: Device points from Request Data could be anything
   private isDevicePoint = (point: any): point is DevicePoint => {
     return point && typeof point.x === 'number' && typeof point.y === 'number';
   };
@@ -87,6 +91,7 @@ class LinkStation {
    * Validator for LinkStationPoint
    * @param point given link station point that needs to be validated
    */
+  //  deepcode ignore no-any: Link Station points from Request Data could be anything
   private isLinkStationPoint = (point: any): point is LinkStationPoint => {
     return point && typeof point.x === 'number' && typeof point.y === 'number' && typeof point.r === 'number';
   };
@@ -95,6 +100,7 @@ class LinkStation {
    * Validate the incoming request data for device point and link station points
    * @param request request data
    */
+  //  deepcode ignore no-any: Request Data is unreliable and could be anything
   private validateRequest = (request: any) => {
     if (typeof request !== 'object' && !Object.keys(request).length) {
       throw new ErrorHandler(404, 'Please provide device point & link station points.');
