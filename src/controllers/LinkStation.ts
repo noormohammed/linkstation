@@ -149,9 +149,12 @@ class LinkStation {
         });
       }
 
+      /* Only if the value is float or in string format, example: 10.8788, fix the decimal value upto 2 */
+      let power = !Number.isInteger(result.power) ? Number(result.power).toFixed(2) : result.power;
+
       return res.status(200).json({
         status: 'success',
-        message: `Best link station for point ${devicePoint.x},${devicePoint.y} is ${result.bestLinkStation.x},${result.bestLinkStation.y} with power ${result.power}`
+        message: `Best link station for point ${devicePoint.x},${devicePoint.y} is ${result.bestLinkStation.x},${result.bestLinkStation.y} with power ${power}`
       });
     } catch (error) {
       console.log(error);
