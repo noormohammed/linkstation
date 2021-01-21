@@ -84,7 +84,7 @@ class LinkStation {
    */
   //  deepcode ignore no-any: Device points from Request Data could be anything
   private isDevicePoint = (point: any): point is DevicePoint => {
-    return point && typeof point.x === 'number' && typeof point.y === 'number';
+    return typeof point === 'object' && typeof point.x === 'number' && typeof point.y === 'number';
   };
 
   /**
@@ -93,7 +93,7 @@ class LinkStation {
    */
   //  deepcode ignore no-any: Link Station points from Request Data could be anything
   private isLinkStationPoint = (point: any): point is LinkStationPoint => {
-    return point && typeof point.x === 'number' && typeof point.y === 'number' && typeof point.r === 'number';
+    return typeof point === 'object' && typeof point.x === 'number' && typeof point.y === 'number' && typeof point.r === 'number';
   };
 
   /**
@@ -102,7 +102,7 @@ class LinkStation {
    */
   //  deepcode ignore no-any: Request Data is unreliable and could be anything
   private validateRequest = (request: any) => {
-    if (typeof request !== 'object' && !Object.keys(request).length) {
+    if (typeof request !== 'object' || !Object.keys(request).length) {
       throw new ErrorHandler(404, 'Please provide device point & link station points.');
     }
 
@@ -120,9 +120,9 @@ class LinkStation {
     }
 
     // Check if request contains Link Station locations points as defined in LinkStationPoint
-    for (const point of request.linkStationPoints) {
-      if (!this.isLinkStationPoint(point)) {
-        throw new ErrorHandler(404, `Invalid link station point: ${JSON.stringify(point)}`);
+    for (const point in request.linkStationPoints) {
+      if (!this.isLinkStationPoint(request.linkStationPoints[point])) {
+        throw new ErrorHandler(404, `Invalid link station point: ${JSON.stringify(request.linkStationPoints[point])}`);
       }
     }
   };
