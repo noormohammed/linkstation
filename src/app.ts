@@ -32,7 +32,11 @@ server.app.use((err: ErrorHandler, req: Request, res: Response, next: NextFuncti
   });
 });
 
+let myServer;
+
 // make server listen on some port
 ((port = process.env.APP_PORT || 5000) => {
-  server.app.listen(port, () => console.log(`> Listening on port ${port}`));
+  myServer = server.app.listen(port, () => console.log(`> Listening on port ${port}`));
 })();
+
+module.exports = myServer;
