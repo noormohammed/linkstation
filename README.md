@@ -65,7 +65,6 @@ Launches the test runner in the interactive watch mode which shall execute the u
 *   Typescript
 *   Jest
 *   Supertest
-*   React Hook Form
 *   ESLint
 *   Prettier
 *   Git
